@@ -1,6 +1,6 @@
 package circular::require;
 BEGIN {
-  $circular::require::VERSION = '0.01';
+  $circular::require::VERSION = '0.02';
 }
 use strict;
 use warnings;
@@ -14,12 +14,16 @@ my $saved;
 
 sub _require {
     my ($file) = @_;
-    if (exists $seen{$file} && !$seen{$file}) {
-        warn "Circular require detected: $file (from " . caller() . ")\n";
+    # on 5.8, if a value has both a string and numeric value, require will
+    # treat it as a vstring, so be sure we don't use the incoming value in
+    # string contexts at all
+    my $string_file = $file;
+    if (exists $seen{$string_file} && !$seen{$string_file}) {
+        warn "Circular require detected: $string_file (from " . caller() . ")\n";
     }
-    $seen{$file} = 0;
+    $seen{$string_file} = 0;
     my $ret = $saved ? $saved->($file) : CORE::require($file);
-    $seen{$file} = 1;
+    $seen{$string_file} = 1;
     return $ret;
 }
 
@@ -53,7 +57,7 @@ circular::require - detect circularity in use/require statements
 
 =head1 VERSION
 
-version 0.01
+version 0.02
 
 =head1 SYNOPSIS
 

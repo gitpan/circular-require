@@ -12,6 +12,8 @@ t/01-basic.t
 t/01/Bar.pm
 t/01/Baz.pm
 t/01/Foo.pm
+t/02-version.t
+t/02/Foo.pm
 t/release-eol.t
 t/release-no-tabs.t
 t/release-pod-coverage.t

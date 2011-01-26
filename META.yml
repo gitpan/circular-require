@@ -16,7 +16,7 @@ requires:
   Package::Stash: 0.22
 resources:
   repository: git://github.com/doy/circular-require.git
-version: 0.01
+version: 0.02
 x_Dist_Zilla:
   plugins:
     -
