@@ -1,7 +1,10 @@
 Revision history for circular-require
 
+0.03  2011-07-18
+      - work around annoying base.pm behavior (reported by wooster)
+
 0.02  2011-01-25
-      - handle 'require VERSION' properly on 5.8
+      - handle 'require VERSION' properly on 5.8 (ether)
 
 0.01  2011-01-25
       - Initial release

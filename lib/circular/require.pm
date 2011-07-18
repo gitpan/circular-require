@@ -1,6 +1,6 @@
 package circular::require;
 BEGIN {
-  $circular::require::VERSION = '0.02';
+  $circular::require::VERSION = '0.03';
 }
 use strict;
 use warnings;
@@ -22,7 +22,22 @@ sub _require {
         warn "Circular require detected: $string_file (from " . caller() . ")\n";
     }
     $seen{$string_file} = 0;
-    my $ret = $saved ? $saved->($file) : CORE::require($file);
+    my $ret;
+    # XXX ugh, base.pm checks against the regex
+    # /^Can't locate .*? at \(eval / to see if it should suppress the error
+    # but we're not in an eval anymore... fake it for now, but this will
+    # definitely break if some other module that overrides CORE::require tries
+    # to do the same thing
+    if (caller eq 'base') {
+        my $mod = $file;
+        $mod =~ s+[/\\]+::+g;
+        $mod =~ s+\.pm$++;
+        $ret = $saved
+            ? $saved->($file) : eval "CORE::require($mod)";
+    }
+    else {
+        $ret = $saved ? $saved->($file) : CORE::require($file);
+    }
     $seen{$string_file} = 1;
     return $ret;
 }
@@ -57,7 +72,7 @@ circular::require - detect circularity in use/require statements
 
 =head1 VERSION
 
-version 0.02
+version 0.03
 
 =head1 SYNOPSIS
 

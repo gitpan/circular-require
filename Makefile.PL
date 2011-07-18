@@ -4,16 +4,18 @@ use warnings;
 
 
 
-use ExtUtils::MakeMaker 6.31;
+use ExtUtils::MakeMaker 6.30;
 
 
 
 my %WriteMakefileArgs = (
   'ABSTRACT' => 'detect circularity in use/require statements',
   'AUTHOR' => 'Jesse Luehrs <doy at tozt dot net>',
-  'BUILD_REQUIRES' => {},
+  'BUILD_REQUIRES' => {
+    'Test::More' => '0.88'
+  },
   'CONFIGURE_REQUIRES' => {
-    'ExtUtils::MakeMaker' => '6.31'
+    'ExtUtils::MakeMaker' => '6.30'
   },
   'DISTNAME' => 'circular-require',
   'EXE_FILES' => [],
@@ -22,7 +24,7 @@ my %WriteMakefileArgs = (
   'PREREQ_PM' => {
     'Package::Stash' => '0.22'
   },
-  'VERSION' => '0.02',
+  'VERSION' => '0.03',
   'test' => {
     'TESTS' => 't/*.t'
   }
