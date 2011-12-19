@@ -1,6 +1,6 @@
 package circular::require;
-BEGIN {
-  $circular::require::VERSION = '0.03';
+{
+  $circular::require::VERSION = '0.04';
 }
 use strict;
 use warnings;
@@ -33,7 +33,7 @@ sub _require {
         $mod =~ s+[/\\]+::+g;
         $mod =~ s+\.pm$++;
         $ret = $saved
-            ? $saved->($file) : eval "CORE::require($mod)";
+            ? $saved->($file) : do { eval "CORE::require $mod" || die $@ };
     }
     else {
         $ret = $saved ? $saved->($file) : CORE::require($file);
@@ -72,7 +72,7 @@ circular::require - detect circularity in use/require statements
 
 =head1 VERSION
 
-version 0.03
+version 0.04
 
 =head1 SYNOPSIS
 
@@ -110,8 +110,6 @@ This module works by overriding C<CORE::GLOBAL::require>, and so other modules
 which do this may cause issues if they aren't written properly. This also means
 that the effect is global, but this is typically the most useful usage.
 
-=for Pod::Coverage unimport
-
 =head1 BUGS
 
 No known bugs.
@@ -147,6 +145,8 @@ L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=circular-require>
 L<http://search.cpan.org/dist/circular-require>
 
 =back
+
+=for Pod::Coverage unimport
 
 =head1 AUTHOR
 
