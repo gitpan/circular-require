@@ -12,7 +12,12 @@ circular::require->unimport;
     my $warnings;
     local $SIG{__WARN__} = sub { $warnings .= $_[0] };
     use_ok('Foo');
-    is($warnings, "Circular require detected: Foo.pm (from Baz)\nCircular require detected: Baz.pm (from Bar)\n", "correct warnings");
+    is($warnings, "Circular require detected: Foo.pm (from Baz.pm)\nCircular require detected: Baz.pm (from Bar.pm)\n", "correct warnings");
+
+    undef $warnings;
+    use_ok('Foo');
+    is($warnings, undef, "using the same file twice doesn't repeat warnings");
+
     clear();
 }
 
@@ -20,7 +25,7 @@ circular::require->unimport;
     my $warnings;
     local $SIG{__WARN__} = sub { $warnings .= $_[0] };
     use_ok('Bar');
-    is($warnings, "Circular require detected: Baz.pm (from Foo)\nCircular require detected: Bar.pm (from Baz)\n", "correct warnings");
+    is($warnings, "Circular require detected: Baz.pm (from Foo.pm)\nCircular require detected: Bar.pm (from Baz.pm)\n", "correct warnings");
     clear();
 }
 
@@ -28,7 +33,7 @@ circular::require->unimport;
     my $warnings;
     local $SIG{__WARN__} = sub { $warnings .= $_[0] };
     use_ok('Baz');
-    is($warnings, "Circular require detected: Baz.pm (from Foo)\n", "correct warnings");
+    is($warnings, "Circular require detected: Baz.pm (from Foo.pm)\nCircular require detected: Baz.pm (from Bar.pm)\n", "correct warnings");
     clear();
 }
 

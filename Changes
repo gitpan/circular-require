@@ -1,5 +1,10 @@
 Revision history for circular-require
 
+0.05  2012-01-04
+      - allow using -hide to avoid reporting unhelpful packages in the error
+        message (Exodist)
+      - fix a bunch more bugs
+
 0.04  2011-12-19
       - fix the previous workaround (Exodist)
 

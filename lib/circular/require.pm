@@ -1,6 +1,6 @@
 package circular::require;
 {
-  $circular::require::VERSION = '0.04';
+  $circular::require::VERSION = '0.05';
 }
 use strict;
 use warnings;
@@ -9,8 +9,10 @@ use warnings;
 use Package::Stash;
 
 
-my %seen;
-my $saved;
+our %loaded_from;
+our $previous_file;
+my $saved_require_hook;
+my @hide;
 
 sub _require {
     my ($file) = @_;
@@ -18,34 +20,45 @@ sub _require {
     # treat it as a vstring, so be sure we don't use the incoming value in
     # string contexts at all
     my $string_file = $file;
-    if (exists $seen{$string_file} && !$seen{$string_file}) {
-        warn "Circular require detected: $string_file (from " . caller() . ")\n";
+    if (exists $loaded_from{$string_file}) {
+        my $caller = $previous_file;
+
+        while (grep { m/^$caller$/ } @hide) {
+            $caller = $loaded_from{$caller};
+            if (!defined($caller) || $caller eq $string_file) {
+                $caller = '<unknown file>';
+                last;
+            }
+        }
+
+        warn "Circular require detected: $string_file (from $caller)\n";
     }
-    $seen{$string_file} = 0;
+    local $loaded_from{$string_file} = $previous_file;
+    local $previous_file = $string_file;
     my $ret;
-    # XXX ugh, base.pm checks against the regex
+    # ugh, base.pm checks against the regex
     # /^Can't locate .*? at \(eval / to see if it should suppress the error
-    # but we're not in an eval anymore... fake it for now, but this will
-    # definitely break if some other module that overrides CORE::require tries
-    # to do the same thing
-    if (caller eq 'base') {
-        my $mod = $file;
-        $mod =~ s+[/\\]+::+g;
-        $mod =~ s+\.pm$++;
-        $ret = $saved
-            ? $saved->($file) : do { eval "CORE::require $mod" || die $@ };
+    # but we're not in an eval anymore
+    # fake it up so that this looks the same
+    if (defined((caller(1))[6])) {
+        require B;
+        my $str = B::perlstring($file);
+        $ret = $saved_require_hook
+            ? $saved_require_hook->($file)
+            : (eval "CORE::require($str)" || die $@);
     }
     else {
-        $ret = $saved ? $saved->($file) : CORE::require($file);
+        $ret = $saved_require_hook
+            ? $saved_require_hook->($file)
+            : CORE::require($file);
     }
-    $seen{$string_file} = 1;
     return $ret;
 }
 
 sub import {
     my $stash = Package::Stash->new('CORE::GLOBAL');
-    if ($saved) {
-        $stash->add_package_symbol('&require' => $saved);
+    if ($saved_require_hook) {
+        $stash->add_package_symbol('&require' => $saved_require_hook);
     }
     else {
         $stash->remove_package_symbol('&require');
@@ -53,11 +66,25 @@ sub import {
 }
 
 sub unimport {
+    my $class = shift;
+    my %params = @_;
+
+    @hide = ref($params{'-hide'}) ? @{ $params{'-hide'} } : ($params{'-hide'})
+        if exists $params{'-hide'};
+    @hide = map { /\.pm/ ? $_ : _mod2pm($_) } @hide;
+
     my $stash = Package::Stash->new('CORE::GLOBAL');
     my $old_require = $stash->get_package_symbol('&require');
-    $saved = $old_require
+    $saved_require_hook = $old_require
         if defined($old_require) && $old_require != \&_require;
     $stash->add_package_symbol('&require', \&_require);
+}
+
+sub _mod2pm {
+    my ($mod) = @_;
+    $mod =~ s+::+/+g;
+    $mod .= '.pm';
+    return $mod;
 }
 
 
@@ -72,7 +99,7 @@ circular::require - detect circularity in use/require statements
 
 =head1 VERSION
 
-version 0.04
+version 0.05
 
 =head1 SYNOPSIS
 
@@ -103,6 +130,17 @@ lead to some very confusing errors, especially if introspection is happening at
 load time (C<make_immutable> in L<Moose> classes, for example). This module
 generates a warning whenever a module is skipped due to being loaded, if that
 module has not finished executing.
+
+In some situations, other modules might be handling the module loading for
+you - C<use base> and C<Class::Load::load_class>, for instance. To avoid these
+modules showing up as the source of cycles, you can use the C<-hide> parameter
+when using this module. For example:
+
+  no circular::require -hide => [qw(base parent Class::Load)];
+
+or
+
+  perl -M'-circular::require -hide => [qw(base parent Class::Load)];' foo.pl
 
 =head1 CAVEATS
 
@@ -154,7 +192,7 @@ Jesse Luehrs <doy at tozt dot net>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Jesse Luehrs.
+This software is copyright (c) 2012 by Jesse Luehrs.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
