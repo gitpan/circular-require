@@ -1,12 +1,16 @@
 package circular::require;
 {
-  $circular::require::VERSION = '0.07';
+  $circular::require::VERSION = '0.08';
 }
 use strict;
 use warnings;
 # ABSTRACT: detect circularity in use/require statements
 
+use 5.010;
 use Package::Stash;
+# XXX would be nice to load this on demand, but "on demand" is within the
+# require override, which causes a mess (on pre-5.14)
+use B;
 
 
 our %loaded_from;
@@ -60,7 +64,6 @@ sub _require {
     # but we're not in an eval anymore
     # fake it up so that this looks the same
     if (defined((caller(1))[6])) {
-        require B;
         my $str = B::perlstring($file);
         $ret = $saved_require_hook
             ? $saved_require_hook->($file)
@@ -75,13 +78,6 @@ sub _require {
 }
 
 sub import {
-    my $stash = Package::Stash->new('CORE::GLOBAL');
-    if ($saved_require_hook) {
-        $stash->add_package_symbol('&require' => $saved_require_hook);
-    }
-    else {
-        $stash->remove_package_symbol('&require');
-    }
     # not delete, because we want to see it being explicitly disabled
     $^H{'circular::require'} = 0;
 }
@@ -121,7 +117,7 @@ circular::require - detect circularity in use/require statements
 
 =head1 VERSION
 
-version 0.07
+version 0.08
 
 =head1 SYNOPSIS
 

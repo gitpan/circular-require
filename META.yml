@@ -15,9 +15,10 @@ meta-spec:
 name: circular-require
 requires:
   Package::Stash: 0.22
+  perl: 5.010
 resources:
   repository: git://github.com/doy/circular-require.git
-version: 0.07
+version: 0.08
 x_Dist_Zilla:
   plugins:
     -

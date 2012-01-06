@@ -22,6 +22,14 @@ t/dynamic2/Bar.pm
 t/dynamic2/Baz.pm
 t/dynamic2/Foo.pm
 t/dynamic2/Quux.pm
+t/dynamic3.t
+t/dynamic3/Bar.pm
+t/dynamic3/Bar2.pm
+t/dynamic3/Bar3.pm
+t/dynamic3/Baz.pm
+t/dynamic3/Baz2.pm
+t/dynamic3/Baz3.pm
+t/dynamic3/Foo.pm
 t/eval.t
 t/eval/Bar.pm
 t/eval/Foo.pm
