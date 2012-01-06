@@ -30,6 +30,12 @@ t/hide_middleman2.t
 t/hide_middleman3.t
 t/injection.t
 t/injection/Foo.pm
+t/long_cycle.t
+t/long_cycle/Bar.pm
+t/long_cycle/Baz.pm
+t/long_cycle/Blorg.pm
+t/long_cycle/Foo.pm
+t/long_cycle/Quux.pm
 t/release-eol.t
 t/release-no-tabs.t
 t/release-pod-coverage.t

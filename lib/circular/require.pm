@@ -1,6 +1,6 @@
 package circular::require;
 {
-  $circular::require::VERSION = '0.05';
+  $circular::require::VERSION = '0.06';
 }
 use strict;
 use warnings;
@@ -21,17 +21,23 @@ sub _require {
     # string contexts at all
     my $string_file = $file;
     if (exists $loaded_from{$string_file}) {
+        my @cycle = ($string_file);
+
         my $caller = $previous_file;
 
-        while (grep { m/^$caller$/ } @hide) {
+        while (defined($caller)) {
+            unshift @cycle, $caller
+                unless grep { /^$caller$/ } @hide;
+            last if $caller eq $string_file;
             $caller = $loaded_from{$caller};
-            if (!defined($caller) || $caller eq $string_file) {
-                $caller = '<unknown file>';
-                last;
-            }
         }
 
-        warn "Circular require detected: $string_file (from $caller)\n";
+        if (@cycle > 1) {
+            warn "Circular require detected:\n  " . join("\n  ", @cycle) . "\n";
+        }
+        else {
+            warn "Circular require detected in $string_file (from unknown file)\n";
+        }
     }
     local $loaded_from{$string_file} = $previous_file;
     local $previous_file = $string_file;
@@ -99,7 +105,7 @@ circular::require - detect circularity in use/require statements
 
 =head1 VERSION
 
-version 0.05
+version 0.06
 
 =head1 SYNOPSIS
 
