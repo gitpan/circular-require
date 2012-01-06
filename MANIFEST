@@ -16,6 +16,12 @@ t/basic.t
 t/basic/Bar.pm
 t/basic/Baz.pm
 t/basic/Foo.pm
+t/dynamic.t
+t/dynamic2.t
+t/dynamic2/Bar.pm
+t/dynamic2/Baz.pm
+t/dynamic2/Foo.pm
+t/dynamic2/Quux.pm
 t/eval.t
 t/eval/Bar.pm
 t/eval/Foo.pm

@@ -1,6 +1,6 @@
 package circular::require;
 {
-  $circular::require::VERSION = '0.06';
+  $circular::require::VERSION = '0.07';
 }
 use strict;
 use warnings;
@@ -13,6 +13,17 @@ our %loaded_from;
 our $previous_file;
 my $saved_require_hook;
 my @hide;
+
+sub _find_enable_state {
+    my $depth = 0;
+    while (defined(scalar(caller(++$depth)))) {
+        my $hh = (caller($depth))[10];
+        next unless defined $hh;
+        next unless exists $hh->{'circular::require'};
+        return $hh->{'circular::require'};
+    }
+    return 0;
+}
 
 sub _require {
     my ($file) = @_;
@@ -32,11 +43,13 @@ sub _require {
             $caller = $loaded_from{$caller};
         }
 
-        if (@cycle > 1) {
-            warn "Circular require detected:\n  " . join("\n  ", @cycle) . "\n";
-        }
-        else {
-            warn "Circular require detected in $string_file (from unknown file)\n";
+        if (_find_enable_state()) {
+            if (@cycle > 1) {
+                warn "Circular require detected:\n  " . join("\n  ", @cycle) . "\n";
+            }
+            else {
+                warn "Circular require detected in $string_file (from unknown file)\n";
+            }
         }
     }
     local $loaded_from{$string_file} = $previous_file;
@@ -69,6 +82,8 @@ sub import {
     else {
         $stash->remove_package_symbol('&require');
     }
+    # not delete, because we want to see it being explicitly disabled
+    $^H{'circular::require'} = 0;
 }
 
 sub unimport {
@@ -77,13 +92,14 @@ sub unimport {
 
     @hide = ref($params{'-hide'}) ? @{ $params{'-hide'} } : ($params{'-hide'})
         if exists $params{'-hide'};
-    @hide = map { /\.pm/ ? $_ : _mod2pm($_) } @hide;
+    @hide = map { /\.pm$/ ? $_ : _mod2pm($_) } @hide;
 
     my $stash = Package::Stash->new('CORE::GLOBAL');
     my $old_require = $stash->get_package_symbol('&require');
     $saved_require_hook = $old_require
         if defined($old_require) && $old_require != \&_require;
     $stash->add_package_symbol('&require', \&_require);
+    $^H{'circular::require'} = 1;
 }
 
 sub _mod2pm {
@@ -105,7 +121,7 @@ circular::require - detect circularity in use/require statements
 
 =head1 VERSION
 
-version 0.06
+version 0.07
 
 =head1 SYNOPSIS
 
@@ -137,6 +153,17 @@ load time (C<make_immutable> in L<Moose> classes, for example). This module
 generates a warning whenever a module is skipped due to being loaded, if that
 module has not finished executing.
 
+This module works as a pragma, and typically pragmas have lexical scope.
+Lexical scope doesn't make a whole lot of sense for this case though, because
+the effect it's tracking isn't lexical (what does it mean to disable the pragma
+inside of a cycle vs. outside of a cycle? does disabling it within a cycle
+cause it to always be disabled for that cycle, or only if it's disabled at the
+point where the warning would otherwise be generated? etc.), but dynamic scope
+(the scope that, for instance, C<local> uses) does, and that's how this module
+works. Saying C<no circular::require> enables the module for the current
+dynamic scope, and C<use circular::require> disables it for the current dynamic
+scope. Hopefully, this will just do what you mean.
+
 In some situations, other modules might be handling the module loading for
 you - C<use base> and C<Class::Load::load_class>, for instance. To avoid these
 modules showing up as the source of cycles, you can use the C<-hide> parameter
@@ -151,8 +178,7 @@ or
 =head1 CAVEATS
 
 This module works by overriding C<CORE::GLOBAL::require>, and so other modules
-which do this may cause issues if they aren't written properly. This also means
-that the effect is global, but this is typically the most useful usage.
+which do this may cause issues if they aren't written properly.
 
 =head1 BUGS
 
