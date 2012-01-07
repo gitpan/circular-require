@@ -39,7 +39,7 @@
          "web" : "http://github.com/doy/circular-require"
       }
    },
-   "version" : "0.08",
+   "version" : "0.09",
    "x_Dist_Zilla" : {
       "plugins" : [
          {

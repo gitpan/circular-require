@@ -1,5 +1,9 @@
 Revision history for circular-require
 
+0.09  2012-01-07
+      - fix some bugs in require VERSION when circular::require is loaded
+        (reported by Exodist)
+
 0.08  2012-01-06
       - loading B on demand causes issues, stop doing that
       - deleting CORE::GLOBAL::require on "use circular::require" makes require
