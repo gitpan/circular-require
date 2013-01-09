@@ -1,6 +1,9 @@
 package circular::require;
+BEGIN {
+  $circular::require::AUTHORITY = 'cpan:DOY';
+}
 {
-  $circular::require::VERSION = '0.09';
+  $circular::require::VERSION = '0.10';
 }
 use strict;
 use warnings;
@@ -100,10 +103,10 @@ sub unimport {
     @hide = map { /\.pm$/ ? $_ : _mod2pm($_) } @hide;
 
     my $stash = Package::Stash->new('CORE::GLOBAL');
-    my $old_require = $stash->get_package_symbol('&require');
+    my $old_require = $stash->get_symbol('&require');
     $saved_require_hook = $old_require
         if defined($old_require) && $old_require != \&_require;
-    $stash->add_package_symbol('&require', \&_require);
+    $stash->add_symbol('&require', \&_require);
     $^H{'circular::require'} = 1;
 }
 
@@ -118,6 +121,7 @@ sub _mod2pm {
 1;
 
 __END__
+
 =pod
 
 =head1 NAME
@@ -126,7 +130,7 @@ circular::require - detect circularity in use/require statements
 
 =head1 VERSION
 
-version 0.09
+version 0.10
 
 =head1 SYNOPSIS
 
@@ -229,10 +233,9 @@ Jesse Luehrs <doy at tozt dot net>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 by Jesse Luehrs.
+This software is copyright (c) 2013 by Jesse Luehrs.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-

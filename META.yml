@@ -3,23 +3,33 @@ abstract: 'detect circularity in use/require statements'
 author:
   - 'Jesse Luehrs <doy at tozt dot net>'
 build_requires:
+  File::Find: 0
+  File::Temp: 0
   Test::More: 0.88
+  base: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300002, CPAN::Meta::Converter version 2.110440'
+generated_by: 'Dist::Zilla version 4.300028, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: circular-require
 requires:
-  Package::Stash: 0.22
+  B: 0
+  Package::Stash: 0
   perl: 5.010
+  strict: 0
+  warnings: 0
 resources:
+  bugtracker: http://rt.cpan.org/Public/Dist/Display.html?Name=circular-require
+  homepage: http://metacpan.org/release/circular-require
   repository: git://github.com/doy/circular-require.git
-version: 0.09
+version: 0.10
 x_Dist_Zilla:
+  perl:
+    version: 5.016002
   plugins:
     -
       class: Dist::Zilla::Plugin::Prereqs
@@ -28,87 +38,91 @@ x_Dist_Zilla:
           phase: test
           type: requires
       name: '@DOY/TestMoreDoneTesting'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::GatherDir
       name: '@DOY/GatherDir'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::PruneCruft
       name: '@DOY/PruneCruft'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::ManifestSkip
       name: '@DOY/ManifestSkip'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::MetaYAML
       name: '@DOY/MetaYAML'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::License
       name: '@DOY/License'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::Readme
       name: '@DOY/Readme'
-      version: 4.300002
+      version: 4.300028
     -
-      class: Dist::Zilla::Plugin::ExtraTests
-      name: '@DOY/ExtraTests'
-      version: 4.300002
+      class: Dist::Zilla::Plugin::RunExtraTests
+      name: '@DOY/RunExtraTests'
+      version: 0.007
     -
       class: Dist::Zilla::Plugin::ExecDir
       name: '@DOY/ExecDir'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::ShareDir
       name: '@DOY/ShareDir'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::MakeMaker
       name: '@DOY/MakeMaker'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::Manifest
       name: '@DOY/Manifest'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::TestRelease
       name: '@DOY/TestRelease'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::ConfirmRelease
       name: '@DOY/ConfirmRelease'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::MetaConfig
       name: '@DOY/MetaConfig'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::MetaJSON
       name: '@DOY/MetaJSON'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::NextRelease
       name: '@DOY/NextRelease'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::CheckChangesHasContent
       name: '@DOY/CheckChangesHasContent'
-      version: 0.003
+      version: 0.006
     -
       class: Dist::Zilla::Plugin::PkgVersion
       name: '@DOY/PkgVersion'
-      version: 4.300002
+      version: 4.300028
+    -
+      class: Dist::Zilla::Plugin::Authority
+      name: '@DOY/Authority'
+      version: 1.006
     -
       class: Dist::Zilla::Plugin::PodCoverageTests
       name: '@DOY/PodCoverageTests'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::PodSyntaxTests
       name: '@DOY/PodSyntaxTests'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::NoTabsTests
       name: '@DOY/NoTabsTests'
@@ -118,25 +132,33 @@ x_Dist_Zilla:
       name: '@DOY/EOLTests'
       version: 0.02
     -
-      class: Dist::Zilla::Plugin::CompileTests
-      name: '@DOY/CompileTests'
-      version: 1.112400
+      class: Dist::Zilla::Plugin::Test::Compile
+      name: '@DOY/Test::Compile'
+      version: 1.112820
     -
-      class: Dist::Zilla::Plugin::Repository
-      name: '@DOY/Repository'
-      version: 0.18
+      class: Dist::Zilla::Plugin::Metadata
+      name: '@DOY/Metadata'
+      version: 3.03
+    -
+      class: Dist::Zilla::Plugin::MetaResources
+      name: '@DOY/MetaResources'
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::Git::Check
       name: '@DOY/Git::Check'
-      version: 1.111590
+      version: 2.001
+    -
+      class: Dist::Zilla::Plugin::Git::Commit
+      name: '@DOY/Git::Commit'
+      version: 2.001
     -
       class: Dist::Zilla::Plugin::Git::Tag
       name: '@DOY/Git::Tag'
-      version: 1.111590
+      version: 2.001
     -
       class: Dist::Zilla::Plugin::Git::NextVersion
       name: '@DOY/Git::NextVersion'
-      version: 1.111590
+      version: 2.001
     -
       class: Dist::Zilla::Plugin::PodWeaver
       name: '@DOY/PodWeaver'
@@ -144,41 +166,38 @@ x_Dist_Zilla:
     -
       class: Dist::Zilla::Plugin::UploadToCPAN
       name: '@DOY/UploadToCPAN'
-      version: 4.300002
+      version: 4.300028
     -
-      class: Dist::Zilla::Plugin::Prereqs
-      config:
-        Dist::Zilla::Plugin::Prereqs:
-          phase: runtime
-          type: requires
-      name: Prereqs
-      version: 4.300002
+      class: Dist::Zilla::Plugin::AutoPrereqs
+      name: AutoPrereqs
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::FinderCode
       name: ':InstallModules'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::FinderCode
       name: ':IncModules'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::FinderCode
       name: ':TestFiles'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::FinderCode
       name: ':ExecFiles'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::FinderCode
       name: ':ShareFiles'
-      version: 4.300002
+      version: 4.300028
     -
       class: Dist::Zilla::Plugin::FinderCode
       name: ':MainModule'
-      version: 4.300002
+      version: 4.300028
   zilla:
     class: Dist::Zilla::Dist::Builder
     config:
       is_trial: 0
-    version: 4.300002
+    version: 4.300028
+x_authority: cpan:DOY

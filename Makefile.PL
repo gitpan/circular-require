@@ -12,7 +12,10 @@ my %WriteMakefileArgs = (
   "ABSTRACT" => "detect circularity in use/require statements",
   "AUTHOR" => "Jesse Luehrs <doy at tozt dot net>",
   "BUILD_REQUIRES" => {
-    "Test::More" => "0.88"
+    "File::Find" => 0,
+    "File::Temp" => 0,
+    "Test::More" => "0.88",
+    "base" => 0
   },
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => "6.30"
@@ -22,9 +25,12 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "circular::require",
   "PREREQ_PM" => {
-    "Package::Stash" => "0.22"
+    "B" => 0,
+    "Package::Stash" => 0,
+    "strict" => 0,
+    "warnings" => 0
   },
-  "VERSION" => "0.09",
+  "VERSION" => "0.10",
   "test" => {
     "TESTS" => "t/*.t"
   }

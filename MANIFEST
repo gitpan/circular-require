@@ -50,8 +50,8 @@ t/long_cycle/Baz.pm
 t/long_cycle/Blorg.pm
 t/long_cycle/Foo.pm
 t/long_cycle/Quux.pm
-t/release-eol.t
-t/release-no-tabs.t
-t/release-pod-coverage.t
-t/release-pod-syntax.t
 t/version.t
+xt/release/eol.t
+xt/release/no-tabs.t
+xt/release/pod-coverage.t
+xt/release/pod-syntax.t
