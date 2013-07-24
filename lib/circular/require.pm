@@ -3,50 +3,33 @@ BEGIN {
   $circular::require::AUTHORITY = 'cpan:DOY';
 }
 {
-  $circular::require::VERSION = '0.10';
+  $circular::require::VERSION = '0.11';
 }
 use strict;
 use warnings;
 # ABSTRACT: detect circularity in use/require statements
 
 use 5.010;
-use Package::Stash;
-# XXX would be nice to load this on demand, but "on demand" is within the
-# require override, which causes a mess (on pre-5.14)
-use B;
+use Devel::OverrideGlobalRequire;
+use Module::Runtime 'module_notional_filename';
 
 
 our %loaded_from;
 our $previous_file;
-my $saved_require_hook;
 my @hide;
 
-sub _find_enable_state {
-    my $depth = 0;
-    while (defined(scalar(caller(++$depth)))) {
-        my $hh = (caller($depth))[10];
-        next unless defined $hh;
-        next unless exists $hh->{'circular::require'};
-        return $hh->{'circular::require'};
-    }
-    return 0;
-}
+Devel::OverrideGlobalRequire::override_global_require {
+    my ($require, $file) = @_;
 
-sub _require {
-    my ($file) = @_;
-    # on 5.8, if a value has both a string and numeric value, require will
-    # treat it as a vstring, so be sure we don't use the incoming value in
-    # string contexts at all
-    my $string_file = $file;
-    if (exists $loaded_from{$string_file}) {
-        my @cycle = ($string_file);
+    if (exists $loaded_from{$file}) {
+        my @cycle = ($file);
 
         my $caller = $previous_file;
 
         while (defined($caller)) {
             unshift @cycle, $caller
                 unless grep { /^$caller$/ } @hide;
-            last if $caller eq $string_file;
+            last if $caller eq $file;
             $caller = $loaded_from{$caller};
         }
 
@@ -55,39 +38,16 @@ sub _require {
                 warn "Circular require detected:\n  " . join("\n  ", @cycle) . "\n";
             }
             else {
-                warn "Circular require detected in $string_file (from unknown file)\n";
+                warn "Circular require detected in $file (from unknown file)\n";
             }
         }
     }
 
-    local $loaded_from{$string_file} = $previous_file;
-    local $previous_file = $string_file;
+    local $loaded_from{$file} = $previous_file;
+    local $previous_file = $file;
 
-    return $saved_require_hook->($file)
-        if $saved_require_hook;
-
-    if (ref(\$file) eq 'VSTRING') {
-        # require 5.8.1
-        return eval sprintf("CORE::require %vd", $file) || die $@;
-    }
-    elsif (!(B::svref_2object(\$file)->FLAGS & B::SVf_POK)) {
-        # require 5.008
-        # note: we are careful above to never use $file in any potential string
-        # contexts - this is what the $string_file variable is for
-        return eval "CORE::require $file" || die $@;
-    }
-    elsif (defined((caller(1))[6])) {
-        # ugh, base.pm checks against the regex
-        # /^Can't locate .*? at \(eval / to see if it should suppress the error
-        # but we're not in an eval anymore
-        # fake it up so that this looks the same
-        my $str = B::perlstring($file);
-        return eval "CORE::require($str)" || die $@;
-    }
-    else {
-        return CORE::require($file);
-    }
-}
+    $require->();
+};
 
 sub import {
     # not delete, because we want to see it being explicitly disabled
@@ -100,21 +60,20 @@ sub unimport {
 
     @hide = ref($params{'-hide'}) ? @{ $params{'-hide'} } : ($params{'-hide'})
         if exists $params{'-hide'};
-    @hide = map { /\.pm$/ ? $_ : _mod2pm($_) } @hide;
+    @hide = map { /\.pm$/ ? $_ : module_notional_filename($_) } @hide;
 
-    my $stash = Package::Stash->new('CORE::GLOBAL');
-    my $old_require = $stash->get_symbol('&require');
-    $saved_require_hook = $old_require
-        if defined($old_require) && $old_require != \&_require;
-    $stash->add_symbol('&require', \&_require);
     $^H{'circular::require'} = 1;
 }
 
-sub _mod2pm {
-    my ($mod) = @_;
-    $mod =~ s+::+/+g;
-    $mod .= '.pm';
-    return $mod;
+sub _find_enable_state {
+    my $depth = 0;
+    while (defined(scalar(caller(++$depth)))) {
+        my $hh = (caller($depth))[10];
+        next unless defined $hh;
+        next unless exists $hh->{'circular::require'};
+        return $hh->{'circular::require'};
+    }
+    return 0;
 }
 
 
@@ -130,7 +89,7 @@ circular::require - detect circularity in use/require statements
 
 =head1 VERSION
 
-version 0.10
+version 0.11
 
 =head1 SYNOPSIS
 
@@ -187,15 +146,15 @@ or
 =head1 CAVEATS
 
 This module works by overriding C<CORE::GLOBAL::require>, and so other modules
-which do this may cause issues if they aren't written properly.
+which do this may cause issues if they aren't written properly. See
+L<Devel::OverrideGlobalRequire> for more information.
 
 =head1 BUGS
 
 No known bugs.
 
-Please report any bugs through RT: email
-C<bug-circular-require at rt.cpan.org>, or browse to
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=circular-require>.
+Please report any bugs to GitHub Issues at
+L<https://github.com/doy/circular-require/issues>.
 
 =head1 SUPPORT
 
@@ -207,21 +166,21 @@ You can also look for information at:
 
 =over 4
 
-=item * AnnoCPAN: Annotated CPAN documentation
+=item * MetaCPAN
 
-L<http://annocpan.org/dist/circular-require>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/circular-require>
+L<https://metacpan.org/release/circular-require>
 
 =item * RT: CPAN's request tracker
 
 L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=circular-require>
 
-=item * Search CPAN
+=item * Github
 
-L<http://search.cpan.org/dist/circular-require>
+L<https://github.com/doy/circular-require>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/circular-require>
 
 =back
 
@@ -229,7 +188,7 @@ L<http://search.cpan.org/dist/circular-require>
 
 =head1 AUTHOR
 
-Jesse Luehrs <doy at tozt dot net>
+Jesse Luehrs <doy@tozt.net>
 
 =head1 COPYRIGHT AND LICENSE
 
